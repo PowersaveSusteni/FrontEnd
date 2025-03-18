@@ -154,54 +154,6 @@ namespace Susteni.Controllers
             model.Ship.ProfilName = ProfilName;
             return View(model);
         }
-        
-
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> DuplicateShipTypeGenerator(string generatorGuid)
-        {
-            ShipRepository shipRepository = new ShipRepository(Configuration);
-            AccountLogOnInfoItem logonInfo = GetLogonInfo();
-
-            // Buscar o gerador original pelo ID
-            ShipTypeGeneratorItem generator = await shipRepository.GetShipTypeGenerator(generatorGuid);
-
-            if (generator == null)
-            {
-                return Json(new { success = false, message = "Gerador não encontrado." });
-            }
-
-            // Criar uma cópia do gerador
-            ShipTypeGeneratorItem copy = new ShipTypeGeneratorItem
-            {
-                GeneratorGuid = Guid.NewGuid().ToString(), // Novo ID único
-                ShipTypeGuid = generator.ShipTypeGuid,
-                Name = generator.Name + " - Copy",
-                TypeGuid = generator.TypeGuid,
-                FuelTypeGuid = generator.FuelTypeGuid,
-                kW = generator.kW,
-                KgDieselkWh = generator.KgDieselkWh,
-                EfficientMotorSwitchboard = generator.EfficientMotorSwitchboard,
-                MaintenanceCost = generator.MaintenanceCost,
-                Order = generator.Order,
-                PowerProduction = generator.PowerProduction,
-                Standard = generator.Standard
-            };
-
-            // Salvar a cópia no banco de dados
-            ReturnValueItem result = await shipRepository.SetShipTypeGenerator(copy);
-
-            if (result.Success)
-            {
-                return Json(new { success = true, message = "Gerador duplicado com sucesso!" });
-            }
-            else
-            {
-                return Json(new { success = false, message = "Erro ao duplicar o gerador." });
-            }
-        }
 
         public IActionResult Summary(string shipGuid, string Name, string ProfilGuid, string ProfilName)
         {

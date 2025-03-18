@@ -165,19 +165,6 @@
                             .Events(events => events.Click("removeShipTypeGen"))
                             .Visible(false)
                             )
-
-                        @(Html.Kendo().FloatingActionButton()
-                            .Name("shipTypeGenDuplicate")
-                            .ThemeColor(FloatingActionButtonThemeColor.Info)
-                            .Size(FloatingActionButtonSize.Small)
-                            .PositionMode(FloatingActionButtonPositionMode.Absolute)
-                            .Align(FloatingActionButtonAlign.TopEnd)
-                            .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(130)) 
-                            .Icon("copy") 
-                            .Events(events => events.Click("duplicateShipTypeGen")) 
-                            .Visible(false) // O botão só será visível quando um gerador for selecionado
-                            )
-
                     </div>
                 </div>
                 <div class="col-6">
@@ -461,7 +448,6 @@
 
         $('#shipTypeGenEdit').getKendoFloatingActionButton().show();
         $('#shipTypeGenRemove').getKendoFloatingActionButton().show();
-        $('#shipTypeGenDuplicate').getKendoFloatingActionButton().show(); // Exibe o botão de duplicação
     }
 
 
@@ -631,33 +617,6 @@
             $('body').append($('<div id="confirm">'));
             });
         }
-    
-    function duplicateShipTypeGen() {
-        if (!shipTypeGeneratorGuid) {
-            alert("Please select a generator to duplicate.");
-            return;
-        }
-
-        $.ajax({
-            url: '@Url.Action("DuplicateShipTypeGenerator", "Ship")',
-            type: "POST",
-            data: { GeneratorGuid: shipTypeGeneratorGuid },
-            success: function (response) {
-                if (response.success) {
-                    alert("Generator duplicated successfully!");
-                    $("#shipTypeGeneratorList").data("kendoGrid").dataSource.read(); // Atualiza a lista
-                } else {
-                    alert("Error duplicating generator: " + response.message);
-                }
-            },
-            error: function (xhr) {
-                alert("Error: " + xhr.responseText);
-            }
-        });
-    }
-
-
-        
 
 
 

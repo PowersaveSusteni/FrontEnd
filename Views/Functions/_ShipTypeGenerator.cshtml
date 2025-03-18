@@ -159,42 +159,10 @@
 
     <div class="row" style="margin-top: 15px; margin-bottom: 0px !important;">
         <div class="col-12" style="margin-bottom: 0px;">
-            <button type="button" onclick="duplicateGenerator()" class="commandModernBlue" style="width: 150px; float: right; margin-right: 10px;">Duplicate</button>
             <button type="button" onclick="closeGenerator()" class="commandModernRed" style="width: 150px; float: right;">Cancel</button>
             <button type="button" onclick="saveGenerator()" class="commandModernGreen" style="width: 150px; float: right">Save</button>
         </div>
 
     </div>
-
-
-
-    <script>
-        function duplicateGenerator() {
-            let generatorGuid = $("input[name='ShipTypeGenerators.GeneratorGuid']").val();
-
-            if (!generatorGuid) {
-                alert("Erro: Nenhum gerador selecionado para duplicação.");
-                return;
-            }
-
-            $.ajax({
-                url: "/Ship/DuplicateShipTypeGenerator",
-                type: "POST",
-                data: { generatorGuid: generatorGuid },
-                success: function (response) {
-                    if (response.success) {
-                        alert(response.message);
-                        location.reload(); // Atualiza a página para mostrar o novo gerador
-                    } else {
-                        alert("Erro: " + response.message);
-                    }
-                },
-                error: function () {
-                    alert("Ocorreu um erro ao duplicar o gerador.");
-                }
-            });
-        }
-    </script>
-
 </form>
 
