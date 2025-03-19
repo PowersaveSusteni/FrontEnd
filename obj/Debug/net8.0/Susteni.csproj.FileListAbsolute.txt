@@ -701,10 +701,10 @@ C:\Visual Studio\Susteni Web\obj\Debug\net8.0\Susteni.genruntimeconfig.cache
 C:\Visual Studio\Susteni Web\obj\Debug\net8.0\ref\Susteni.dll
 C:\Visual Studio\Susteni Web\bin\Debug\net8.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Visual Studio\Susteni Web\bin\Debug\net8.0\System.ClientModel.dll
+C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\NuGet.Config
 C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\appsettings.Production.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\global.json
-C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\NuGet.Config
 C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\Susteni.staticwebassets.runtime.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\Susteni.staticwebassets.endpoints.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\Front\bin\Debug\net8.0\Susteni.exe

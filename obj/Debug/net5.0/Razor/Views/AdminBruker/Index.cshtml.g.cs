@@ -1692,7 +1692,8 @@ Write(Html.Kendo().Dialog()
     function getCheckedNodes(nodes) {
         var node, childCheckedNodes;
         var checkedNodes = [];
-");
+
+");
             WriteLiteral(@"
         for (var i = 0; i < nodes.length; i++) {
             node = nodes[i];
