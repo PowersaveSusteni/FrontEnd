@@ -431,6 +431,22 @@
 
 
                                                 @(Html.Kendo().FloatingActionButton()
+                                                    .Name("duplicateGenerator")
+                                                    .ThemeColor(FloatingActionButtonThemeColor.Warning)
+                                                    .Size(FloatingActionButtonSize.Small)
+                                                    .PositionMode(FloatingActionButtonPositionMode.Absolute)
+                                                    .Align(FloatingActionButtonAlign.TopEnd)
+                                                    .AlignOffset(alignOffset => alignOffset.Vertical(60)) // Posiciona abaixo do botão original
+                                                    .Icon("copy")
+                                                    .Events(e => e.Click("duplicateSelectedGenerator"))
+)
+
+
+
+                                                
+
+
+                                                @(Html.Kendo().FloatingActionButton()
                                                     .Name("generatorsImport")
                                                     .ThemeColor(FloatingActionButtonThemeColor.Success)
                                                     .Size(FloatingActionButtonSize.Small)
@@ -659,5 +675,50 @@
     $("#shipGeneratorList").on("dblclick", "tr.k-selected", function () {
         showDialogGeneratorsEdit();
     });
+
+    function duplicateSelectedGenerator() {
+        // Captura a linha selecionada corretamente
+        var selectedRow = $("#powerProductionTable tr.k-state-selected");
+
+        if (selectedRow.length === 0) {
+            alert("Nenhum gerador selecionado para duplicação.");
+            return;
+        }
+
+        // Obtém o nome do gerador na segunda coluna
+        var generatorName = selectedRow.find("td:nth-child(2)").text().trim();
+
+        if (!generatorName) {
+            alert("Erro ao obter o nome do gerador.");
+            return;
+        }
+
+        console.log("Gerador selecionado:", generatorName); // Para depuração no console
+
+        $.ajax({
+            url: "/Ship/DuplicateGenerator",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ generatorName: generatorName }),
+            success: function(response) {
+                if (response.success) {
+                    alert("Gerador duplicado com sucesso!");
+                    location.reload(); // Atualiza a página para exibir o novo gerador
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert("Erro ao duplicar o gerador.");
+            }
+        });
+    }
+
+
+    
+
+   
+
+
 
 </script>
