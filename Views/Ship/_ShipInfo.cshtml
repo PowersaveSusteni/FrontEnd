@@ -19,6 +19,133 @@
 </style>
 
 
+<script>
+
+    function duplicateSelectedGenerator() {
+        var grid = $("#shipGeneratorList").data("kendoGrid");
+        var selected = grid.select();
+        
+        if (selected.length === 0) {
+            alert("Nenhum gerador selecionado para duplicação.");
+            return;
+        }
+
+        var dataItem = grid.dataItem(selected);
+        
+        if (!dataItem) {
+            alert("Erro ao obter os dados do gerador selecionado.");
+            return;
+        }
+
+        // Obter o número mais alto existente para o tipo selecionado (Generator ou Boiler)
+        var existingNames = grid.dataSource.data().map(item => item.Name);
+        var baseName = dataItem.Name.replace(/[0-9]/g, "").trim(); // Remover números do nome
+        var highestNumber = 0;
+
+        existingNames.forEach(name => {
+            var match = name.match(/\d+$/); // Captura o número no final do nome
+            if (match) {
+                var num = parseInt(match[0]);
+                if (name.includes(baseName) && num > highestNumber) {
+                    highestNumber = num;
+                }
+            }
+        });
+
+        var newGenerator = {
+            GeneratorGuid: kendo.guid(), // Gera um novo ID
+            Order: highestNumber + 1, // Ordem sequencial correta
+            Name: baseName + " " + (highestNumber + 1), // Nome correto com sequência
+            kW: dataItem.kW,
+            KgDieselkWh: dataItem.KgDieselkWh,
+            FuelType: dataItem.FuelType,
+            FuelPrice: dataItem.FuelPrice,
+            EfficientGeneratorToPowerplant: dataItem.EfficientGeneratorToPowerplant,
+            MaintenanceCostPerHour: dataItem.MaintenanceCostPerHour,
+            PowerProduction: dataItem.PowerProduction,
+            ExcludeFromAutotune: dataItem.ExcludeFromAutotune
+        };
+
+        // Adicionar ao grid
+        grid.dataSource.add(newGenerator);
+        grid.refresh();
+
+        console.log("Novo gerador duplicado:", newGenerator);
+
+        // Salvar no backend
+        saveGenerators();
+    }
+
+
+    // Tornar a função acessível globalmente
+    window.duplicateSelectedGenerator = duplicateSelectedGenerator;
+
+    // Tornar a função acessível globalmente
+
+
+
+
+
+
+        function duplicateSelectedProfile() {
+            var grid = $("#shipProfilesList").data("kendoGrid");
+            var selected = grid.select();
+
+            if (selected.length === 0) {
+                alert("Nenhum perfil selecionado para duplicação.");
+                return;
+            }
+
+            var dataItem = grid.dataItem(selected);
+            
+            if (!dataItem) {
+                alert("Erro ao obter os dados do perfil selecionado.");
+                return;
+            }
+
+            var newProfile = {
+                ProfilGuid: kendo.guid(), // Gera um novo ID único
+                Name: dataItem.Name + " (Copy)"
+            };
+
+            grid.dataSource.add(newProfile);
+            grid.refresh();
+
+            console.log("Novo perfil duplicado:", newProfile);
+        }
+
+// Tornar a função acessível globalmente
+    window.duplicateSelectedProfile = duplicateSelectedProfile;
+
+
+    function removeGenerator() {
+        var grid = $("#shipGeneratorList").data("kendoGrid");
+        var selected = grid.select(); // Obtém os itens selecionados
+
+        if (selected.length === 0) {
+            alert("Nenhum gerador selecionado para remoção.");
+            return;
+        }
+
+        selected.each(function () {
+            var dataItem = grid.dataItem(this); // Obtém o item selecionado
+            if (dataItem) {
+                grid.dataSource.remove(dataItem); // Remove o item específico do DataSource
+                console.log("Gerador removido:", dataItem);
+            }
+        });
+
+        grid.refresh(); // Atualiza o grid após a remoção
+    }
+
+    // Torna a função acessível globalmente
+    window.removeGenerator = removeGenerator;
+
+
+
+</script>
+
+
 <div id="shipForm">
 
     <input hidden asp-for="Ship.ShipGuid" class="form-control">
@@ -279,13 +406,28 @@
                                                     .Visible(false)
                                                     )
 
+
+                                                @(Html.Kendo().FloatingActionButton()
+                                                    .Name("operationModeCopy")
+                                                    .ThemeColor(FloatingActionButtonThemeColor.Success)
+                                                    .Size(FloatingActionButtonSize.Small)
+                                                    .PositionMode(FloatingActionButtonPositionMode.Absolute)
+                                                    .Align(FloatingActionButtonAlign.TopEnd)
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(50))
+                                                    .Icon("CopyIcon")
+                                                    .Events(events => events.Click("showDialogOperationMode"))
+                                                    .Visible(false)
+                                                    )
+
+                                                
+
                                                 @(Html.Kendo().FloatingActionButton()
                                                     .Name("operationModeEdit")
                                                     .ThemeColor(FloatingActionButtonThemeColor.Warning)
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(50))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(90))
                                                     .Icon("pencilIcon")
                                                     .Events(events => events.Click("showDialogOperationModeEdit"))
                                                     .Visible(false)
@@ -297,7 +439,7 @@
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(90))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(130))
                                                     .Icon("trashIcon")
                                                     .Events(events => events.Click("removeOperationMode"))
                                                     .Visible(false)
@@ -331,6 +473,9 @@
                                                         )
                                                     )
 
+
+                                                
+
                                                 @(Html.Kendo().FloatingActionButton()
                                                     .Name("profileAdd")
                                                     .ThemeColor(FloatingActionButtonThemeColor.Success)
@@ -343,13 +488,27 @@
                                                     .Visible(true)
                                                     )
 
+
+                                                @(Html.Kendo().FloatingActionButton()
+                                                    .Name("profileDuplicate")
+                                                    .ThemeColor(FloatingActionButtonThemeColor.Warning)
+                                                    .Size(FloatingActionButtonSize.Small)
+                                                    .PositionMode(FloatingActionButtonPositionMode.Absolute)
+                                                    .Align(FloatingActionButtonAlign.TopEnd)
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(50))
+                                                    .Icon("copy")
+                                                    .Events(events => events.Click("duplicateSelectedProfile")) 
+                                                    .Visible(false) // Inicialmente oculto
+                                                )
+
+
                                                 @(Html.Kendo().FloatingActionButton()
                                                     .Name("profileEdit")
                                                     .ThemeColor(FloatingActionButtonThemeColor.Warning)
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(50))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(90))
                                                     .Icon("pencilIcon")
                                                     .Events(events => events.Click("showDialogProfilEdit"))
                                                     .Visible(false)
@@ -361,7 +520,7 @@
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(90))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(0).Vertical(130))
                                                     .Icon("trashIcon")
                                                     .Events(events => events.Click("removeProfil"))
                                                     .Visible(false)
@@ -430,21 +589,24 @@
                                                     )
 
 
-                                                @(Html.Kendo().FloatingActionButton()
-                                                    .Name("duplicateGenerator")
-                                                    .ThemeColor(FloatingActionButtonThemeColor.Warning)
-                                                    .Size(FloatingActionButtonSize.Small)
-                                                    .PositionMode(FloatingActionButtonPositionMode.Absolute)
-                                                    .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Vertical(60)) // Posiciona abaixo do botão original
-                                                    .Icon("copy")
-                                                    .Events(e => e.Click("duplicateSelectedGenerator"))
+                                                <div id="duplicateButtonContainer">
+                                                    @(Html.Kendo().FloatingActionButton()
+                                                        .Name("duplicateGenerator")
+                                                        .ThemeColor(FloatingActionButtonThemeColor.Warning)
+                                                        .Size(FloatingActionButtonSize.Small)
+                                                        .PositionMode(FloatingActionButtonPositionMode.Absolute)
+                                                        .Align(FloatingActionButtonAlign.TopEnd)
+                                                        .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(50))
+                                                        .Icon("copy")
+                                                        .Events(events => events.Click("duplicateSelectedGenerator"))
+                                                        .Visible(false) // Inicialmente oculto, mas será ativado pelo script
+                                                    )
+
+                                                    )
+                                                </div>
+
+
 )
-
-
-
-                                                
-
 
                                                 @(Html.Kendo().FloatingActionButton()
                                                     .Name("generatorsImport")
@@ -452,7 +614,7 @@
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(50))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(90))
                                                     .Icon("searchIcon")
                                                     .Events(events => events.Click("showDialogGeneratorsImport"))
                                                     .Visible(false)
@@ -464,7 +626,7 @@
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(90))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(130))
                                                     .Icon("pencilIcon")
                                                     .Events(events => events.Click("showDialogGeneratorsEdit"))
                                                     .Visible(false)
@@ -476,7 +638,7 @@
                                                     .Size(FloatingActionButtonSize.Small)
                                                     .PositionMode(FloatingActionButtonPositionMode.Absolute)
                                                     .Align(FloatingActionButtonAlign.TopEnd)
-                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(130))
+                                                    .AlignOffset(alignOffset => alignOffset.Horizontal(-10).Vertical(170))
                                                     .Icon("trashIcon")
                                                     .Events(events => events.Click("removeGenerator"))
                                                     .Visible(false)
@@ -505,14 +667,17 @@
     $(document).ready(function () {
 
         var fbOMA = $("#operationModeAdd").getKendoFloatingActionButton();
+        var fbCOP = $("#operationModeCopy").getKendoFloatingActionButton();
         var fbOMR = $("#operationModeRemove").getKendoFloatingActionButton();
         var fbOME = $("#operationModeEdit").getKendoFloatingActionButton();
 
         $("#operationModeAdd").prop("type", "button");
+        $("#operationModeCopy").prop("type", "button");
         $("#operationModeRemove").prop("type", "button");
         $("#operationModeEdit").prop("type", "button");
 
         fbOMAText = "Add operation mode";
+        fbCOPText = "Copy operation mode";
         fbOMRText = "Remove operation mode";
         fbOMEText = "Edit operation mode";
 
@@ -528,6 +693,22 @@
                     fbOMA.text("");
                     });
             });
+
+
+
+
+        $("#operationModeCopy").hover(function () {
+            fbCOP.text(fbCOPText);
+            fbCOP.element.find(".k-fab-text")
+                .stop().toggle(200);
+        }, function () {
+            fbCOP.element.find(".k-fab-text")
+                .stop()
+                .toggle(200)
+                .promise().done(function () {
+                    fbCOP.text("");
+                });
+        });
 
         $("#operationModeRemove").hover(function () {
             fbOMR.text(fbOMRText);
@@ -557,11 +738,13 @@
 
 
         var fbGA = $("#generatorsAdd").getKendoFloatingActionButton();
+        var fbDU = $("#duplicateGenerator").getKendoFloatingActionButton();
         var fbGI = $("#generatorsImport").getKendoFloatingActionButton();
         var fbGR = $("#generatorsRemove").getKendoFloatingActionButton();
         var fbGE = $("#generatorsEdit").getKendoFloatingActionButton();
 
         $("#generatorsAdd").prop("type", "button");
+        $("#duplicateGenerator").prop("type", "button");
         $("#generatorsImport").prop("type", "button");
         $("#generatorsRemove").prop("type", "button");
         $("#generatorsEdit").prop("type", "button");
@@ -578,6 +761,20 @@
                     fbGA.text("");
                 });
             });
+
+
+        $("#duplicateGenerator").hover(function () {
+            fbDU.text("Duplicate Power Source");
+            fbDU.element.find(".k-fab-text")
+                .stop().toggle(200);
+        }, function () {
+            fbDU.element.find(".k-fab-text")
+                .stop()
+                .toggle(200)
+                .promise().done(function () {
+                    fbDU.text("");
+                });
+        });
                     
         $("#generatorsImport").hover(function () {
             fbGI.text("Import Power Source");
@@ -619,14 +816,17 @@
             });
 
         var fbPA = $("#profileAdd").getKendoFloatingActionButton();
+        var fbCOPI = $("#profileCopy").getKendoFloatingActionButton();
         var fbPR = $("#profileRemove").getKendoFloatingActionButton();
         var fbPE = $("#profileEdit").getKendoFloatingActionButton();
 
         $("#profileAdd").prop("type", "button");
+        $("#profileCopy").prop("type", "button");
         $("#profileRemove").prop("type", "button");
         $("#profileEdit").prop("type", "button");
 
         fbPAText = "Add profile";
+        fbCOPIText = "Copy profile";
         fbPRText = "Remove profile";
         fbPEText = "Edit profile";
 
@@ -641,6 +841,20 @@
                 .toggle(200)
                 .promise().done(function () {
                     fbPA.text("");
+                });
+        });
+
+
+        $("#profileCopy").hover(function () {
+            fbCOPI.text(fbCOPIText);
+            fbCOPI.element.find(".k-fab-text")
+                .stop().toggle(200);
+        }, function () {
+            fbCOPI.element.find(".k-fab-text")
+                .stop()
+                .toggle(200)
+                .promise().done(function () {
+                    fbCOPI.text("");
                 });
         });
 
@@ -672,53 +886,80 @@
 
     });
 
-    $("#shipGeneratorList").on("dblclick", "tr.k-selected", function () {
-        showDialogGeneratorsEdit();
+    $("#shipGeneratorList").on("dblclick", "tr.k-state-selected", function () {
+        if (typeof showDialogGeneratorsEdit === "function") {
+            showDialogGeneratorsEdit();
+        } else {
+            console.error("Erro: função showDialogGeneratorsEdit não definida!");
+        }
     });
 
-    function duplicateSelectedGenerator() {
-        // Captura a linha selecionada corretamente
-        var selectedRow = $("#powerProductionTable tr.k-state-selected");
 
-        if (selectedRow.length === 0) {
-            alert("Nenhum gerador selecionado para duplicação.");
-            return;
+
+    $(document).ready(function () {
+        $("#shipGeneratorList").data("kendoGrid").bind("dataBound", function () {
+            var grid = $("#shipGeneratorList").data("kendoGrid");
+            var totalRows = grid.dataSource.total();
+
+            console.log("Total de geradores encontrados:",
+            
+             totalRows);
+
+            if (totalRows > 0) {
+                var duplicateButton = $("#duplicateGenerator").data("kendoFloatingActionButton");
+
+                if (!duplicateButton) {
+                    console.log("Botão de duplicação não encontrado, tentando inicializar...");
+                    $("#duplicateGenerator").kendoFloatingActionButton(); // Inicializa o botão se ainda não estiver ativo
+                    duplicateButton = $("#duplicateGenerator").data("kendoFloatingActionButton");
+                }
+
+                if (duplicateButton) {
+                    duplicateButton.show();
+                    console.log("Botão de duplicação ativado!");
+                } else {
+                    console.log("Erro: botão de duplicação ainda não encontrado!");
+                }
+            }
+        });
+    });
+
+
+    $(document).ready(function () {
+        if ($("#duplicateGenerator").length) {
+            console.log("Botão de duplicação encontrado.");
+        } else {
+            console.log("Botão de duplicação NÃO encontrado!");
         }
+    });
 
-        // Obtém o nome do gerador na segunda coluna
-        var generatorName = selectedRow.find("td:nth-child(2)").text().trim();
 
-        if (!generatorName) {
-            alert("Erro ao obter o nome do gerador.");
-            return;
-        }
 
-        console.log("Gerador selecionado:", generatorName); // Para depuração no console
+
+
+    function saveGenerators() {
+        var grid = $("#shipGeneratorList").data("kendoGrid");
+        var generatorsData = grid.dataSource.data(); // Obtém todos os dados do grid
 
         $.ajax({
-            url: "/Ship/DuplicateGenerator",
+            url: "/Ship/SaveGenerators", // Ajuste conforme a rota do seu backend
             type: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ generatorName: generatorName }),
+            data: JSON.stringify(generatorsData),
             success: function(response) {
-                if (response.success) {
-                    alert("Gerador duplicado com sucesso!");
-                    location.reload(); // Atualiza a página para exibir o novo gerador
-                } else {
-                    alert(response.message);
-                }
+                console.log("Geradores salvos com sucesso:", response);
             },
-            error: function() {
-                alert("Erro ao duplicar o gerador.");
+            error: function(xhr, status, error) {
+                console.error("Erro ao salvar geradores:", error);
             }
         });
     }
 
 
+
+
+
+
+
     
-
-   
-
-
-
 </script>
