@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Susteni")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d92111c5208e7b9a05622abe960a49f372b87419")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+26765a97efdffcbb09e2c1c91df6273cbccbbd4a")]
 [assembly: System.Reflection.AssemblyProductAttribute("Susteni")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Susteni")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -20,67 +20,87 @@
 
 
 <script>
-
+    
     function duplicateSelectedGenerator() {
         var grid = $("#shipGeneratorList").data("kendoGrid");
         var selected = grid.select();
-        
+
         if (selected.length === 0) {
             alert("Nenhum gerador selecionado para duplicação.");
             return;
         }
 
         var dataItem = grid.dataItem(selected);
-        
         if (!dataItem) {
             alert("Erro ao obter os dados do gerador selecionado.");
             return;
         }
 
-        // Obter o número mais alto existente para o tipo selecionado (Generator ou Boiler)
+        // Obter lista de nomes existentes
         var existingNames = grid.dataSource.data().map(item => item.Name);
-        var baseName = dataItem.Name.replace(/[0-9]/g, "").trim(); // Remover números do nome
+
+        // Identificar base do nome sem número
+        var baseName = dataItem.Name.replace(/\d+$/, "").trim();
         var highestNumber = 0;
 
         existingNames.forEach(name => {
-            var match = name.match(/\d+$/); // Captura o número no final do nome
-            if (match) {
+            var match = name.match(/\d+$/);
+            if (match && name.includes(baseName)) {
                 var num = parseInt(match[0]);
-                if (name.includes(baseName) && num > highestNumber) {
+                if (num > highestNumber) {
                     highestNumber = num;
                 }
             }
         });
 
+        // Criar novo gerador duplicado
         var newGenerator = {
-            GeneratorGuid: kendo.guid(), // Gera um novo ID
-            Order: highestNumber + 1, // Ordem sequencial correta
-            Name: baseName + " " + (highestNumber + 1), // Nome correto com sequência
+            GeneratorGuid: kendo.guid(),
+            ShipGuid: dataItem.ShipGuid,
+            Name: baseName + " " + (highestNumber + 1),
             kW: dataItem.kW,
             KgDieselkWh: dataItem.KgDieselkWh,
-            FuelType: dataItem.FuelType,
+            FuelTypeGuid: dataItem.FuelTypeGuid || null,
+            MaintenanceCost: dataItem.MaintenanceCost,
             FuelPrice: dataItem.FuelPrice,
-            EfficientGeneratorToPowerplant: dataItem.EfficientGeneratorToPowerplant,
-            MaintenanceCostPerHour: dataItem.MaintenanceCostPerHour,
             PowerProduction: dataItem.PowerProduction,
+            Order: highestNumber + 1,
             ExcludeFromAutotune: dataItem.ExcludeFromAutotune
         };
 
-        // Adicionar ao grid
-        grid.dataSource.add(newGenerator);
-        grid.refresh();
-
-        console.log("Novo gerador duplicado:", newGenerator);
-
-        // Salvar no backend
-        saveGenerators();
+        // Enviar para backend e depois atualizar grid
+        saveGenerators([newGenerator]);
     }
+
+
+
 
 
     // Tornar a função acessível globalmente
     window.duplicateSelectedGenerator = duplicateSelectedGenerator;
 
-    // Tornar a função acessível globalmente
+
+    function saveGenerators(generators) {
+        $.ajax({
+            url: "http://localhost:5210/Ship/SaveGenerators",
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(generators),
+            success: function(response) {
+                console.log("Geradores salvos com sucesso:", response);
+                // Após sucesso no backend, força recarregar o grid
+                var grid = $("#shipGeneratorList").data("kendoGrid");
+                grid.dataSource.read().then(function(){
+                    grid.refresh();
+                    console.log("Grid recarregado e atualizado após salvar o gerador.");
+                });
+            },
+            error: function(error) {
+                console.error("Erro ao salvar geradores:", error);
+                alert("Falha ao salvar gerador no banco de dados.");
+            }
+        });
+    }
 
 
 
@@ -932,32 +952,6 @@
             console.log("Botão de duplicação NÃO encontrado!");
         }
     });
-
-
-
-
-
-    function saveGenerators() {
-        var grid = $("#shipGeneratorList").data("kendoGrid");
-        var generatorsData = grid.dataSource.data(); // Obtém todos os dados do grid
-
-        $.ajax({
-            url: "/Ship/SaveGenerators", // Ajuste conforme a rota do seu backend
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(generatorsData),
-            success: function(response) {
-                console.log("Geradores salvos com sucesso:", response);
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao salvar geradores:", error);
-            }
-        });
-    }
-
-
-
-
 
 
 
