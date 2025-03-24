@@ -21,6 +21,7 @@
 
 <script>
     
+
     function duplicateSelectedGenerator() {
         var grid = $("#shipGeneratorList").data("kendoGrid");
         var selected = grid.select();
@@ -38,8 +39,6 @@
 
         // Obter lista de nomes existentes
         var existingNames = grid.dataSource.data().map(item => item.Name);
-
-        // Identificar base do nome sem número
         var baseName = dataItem.Name.replace(/\d+$/, "").trim();
         var highestNumber = 0;
 
@@ -53,22 +52,39 @@
             }
         });
 
-        // Criar novo gerador duplicado
         var newGenerator = {
             GeneratorGuid: kendo.guid(),
             ShipGuid: dataItem.ShipGuid,
             Name: baseName + " " + (highestNumber + 1),
+            Order: highestNumber + 1,
+
+            // ✅ Todos os campos importantes:
+            TypeGuid: dataItem.TypeGuid,
+            FuelTypeGuid: dataItem.FuelTypeGuid,
             kW: dataItem.kW,
             KgDieselkWh: dataItem.KgDieselkWh,
-            FuelTypeGuid: dataItem.FuelTypeGuid || null,
-            MaintenanceCost: dataItem.MaintenanceCost,
+            KgDieselkWh2: dataItem.KgDieselkWh2,
             FuelPrice: dataItem.FuelPrice,
+            FuelPrice2: dataItem.FuelPrice2,
+            EfficientMotorSwitchboard: dataItem.EfficientMotorSwitchboard,
+            EfficientMotorSwitchboard2: dataItem.EfficientMotorSwitchboard2,
+            MaintenanceCost: dataItem.MaintenanceCost,
+            MaintenanceCost2: dataItem.MaintenanceCost2,
             PowerProduction: dataItem.PowerProduction,
-            Order: highestNumber + 1,
-            ExcludeFromAutotune: dataItem.ExcludeFromAutotune
+            ExcludeAutoTune: dataItem.ExcludeAutoTune,
+            EffectBefore: dataItem.EffectBefore,
+            EffectAfter: dataItem.EffectAfter,
+            Faktor: dataItem.Faktor,
+            FuelBefore: dataItem.FuelBefore,
+            FuelAfter: dataItem.FuelAfter,
+            CO2Before: dataItem.CO2Before,
+            CO2After: dataItem.CO2After,
+            NOxBefore: dataItem.NOxBefore,
+            NOxAfter: dataItem.NOxAfter,
+            SOxBefore: dataItem.SOxBefore,
+            SOxAfter: dataItem.SOxAfter
         };
 
-        // Enviar para backend e depois atualizar grid
         saveGenerators([newGenerator]);
     }
 
@@ -80,24 +96,41 @@
     window.duplicateSelectedGenerator = duplicateSelectedGenerator;
 
 
+
     function saveGenerators(generators) {
+        if (!Array.isArray(generators) || generators.length === 0) {
+            console.warn("⚠️ Nenhum gerador fornecido para salvar.");
+            alert("Nenhum gerador foi preparado para salvar.");
+            return;
+        }
+
         $.ajax({
             url: "http://localhost:5210/Ship/SaveGenerators",
-            method: 'POST',
-            contentType: 'application/json',
+            method: "POST",
+            contentType: "application/json",
             data: JSON.stringify(generators),
-            success: function(response) {
-                console.log("Geradores salvos com sucesso:", response);
-                // Após sucesso no backend, força recarregar o grid
-                var grid = $("#shipGeneratorList").data("kendoGrid");
-                grid.dataSource.read().then(function(){
-                    grid.refresh();
-                    console.log("Grid recarregado e atualizado após salvar o gerador.");
-                });
+            success: function (response) {
+                console.log("✅ Geradores salvos com sucesso:", response);
+
+                // Recarrega o grid, se existir
+                const grid = $("#shipGeneratorList").data("kendoGrid");
+                if (grid) {
+                    grid.dataSource.read().then(function () {
+                        grid.refresh();
+                        console.log("🔁 Grid recarregado após salvar o gerador.");
+                    });
+                }
+
+                alert("Gerador salvo com sucesso!");
             },
-            error: function(error) {
-                console.error("Erro ao salvar geradores:", error);
-                alert("Falha ao salvar gerador no banco de dados.");
+            error: function (xhr) {
+                console.error("❌ Erro ao salvar geradores:", xhr);
+                let message = "Falha ao salvar gerador.";
+
+                if (xhr.responseJSON && xhr.responseJSON.details)
+                    message += "\nDetalhes: " + xhr.responseJSON.details;
+
+                alert(message);
             }
         });
     }
@@ -139,24 +172,47 @@
 
 
     function removeGenerator() {
-        var grid = $("#shipGeneratorList").data("kendoGrid");
-        var selected = grid.select(); // Obtém os itens selecionados
+    var grid = $("#shipGeneratorList").data("kendoGrid");
+    var selected = grid.select();
 
-        if (selected.length === 0) {
-            alert("Nenhum gerador selecionado para remoção.");
-            return;
-        }
-
-        selected.each(function () {
-            var dataItem = grid.dataItem(this); // Obtém o item selecionado
-            if (dataItem) {
-                grid.dataSource.remove(dataItem); // Remove o item específico do DataSource
-                console.log("Gerador removido:", dataItem);
-            }
-        });
-
-        grid.refresh(); // Atualiza o grid após a remoção
+    if (selected.length === 0) {
+        alert("Nenhum gerador selecionado para remoção.");
+        return;
     }
+
+    selected.each(function () {
+        var dataItem = grid.dataItem(this);
+        if (dataItem && dataItem.GeneratorGuid) {
+            // Requisição para backend
+            $.ajax({
+                url: "http://localhost:5210/Ship/RemoveShipGenerator",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    //UserId: "support",
+                    //Password: "Morten09gutt",
+                    Server: "localhost\\SQLEXPRESS",
+                    Database: "Susteni",
+                    Parameters: {
+                        filter: `GeneratorGuid = '${dataItem.GeneratorGuid}'`
+                    }
+                }),
+                success: function (response) {
+                    console.log("Gerador removido com sucesso:", dataItem.GeneratorGuid);
+
+                    // Agora sim remove do grid depois do sucesso no backend
+                    grid.dataSource.remove(dataItem);
+                    grid.refresh();
+                },
+                error: function (err) {
+                    console.error("Erro ao excluir gerador:", err);
+                    alert("Erro ao excluir o gerador no banco de dados.");
+                }
+            });
+        }
+    });
+}
+
 
     // Torna a função acessível globalmente
     window.removeGenerator = removeGenerator;

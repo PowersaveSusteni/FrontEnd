@@ -832,33 +832,37 @@
             });
     }
 
+    
     function showDialogGeneratorsEdit() {
+        var grid = $("#shipGeneratorList").data("kendoGrid");
+        var selected = grid.select();
+
+        if (selected.length === 0) {
+            alert("Nenhum gerador selecionado para edição.");
+            return;
+        }
+
+        var dataItem = grid.dataItem(selected);
+        if (!dataItem || !dataItem.GeneratorGuid) {
+            alert("Erro ao obter o gerador selecionado.");
+            return;
+        }
+
+        var generatorGuid = dataItem.GeneratorGuid;
+
         $.ajax({
             url: '@Url.Action("DialogGeneratorEdit", "Ship")',
             type: "GET",
             data: { generatorGuid: generatorGuid }
-            })
-        .done(function (result) {
+        }).done(function (result) {
             $('#dialogGenerators').html(result);
 
-                var kgF = document.getElementById("ShipGenerator_EfficientMotorSwitchboard2").value;
-                kgF = kgF.toString().replace(",",".");
-                $("#ShipGenerator_EfficientMotorSwitchboard").data("kendoNumericTextBox").value(kgF);
-
-
-                kgF = document.getElementById("ShipGenerator_KgDieselkWh2").value
-                kgF = kgF.toString().replace(",",".");
-                $("#ShipGenerator_KgDieselkWh").data("kendoNumericTextBox").value(kgF);
-
-
-                kgF = document.getElementById("ShipGenerator_MaintenanceCost2").value
-                kgF = kgF.toString().replace(",",".");
-                $("#ShipGenerator_MaintenanceCost").data("kendoNumericTextBox").value(kgF);
 
             var popup = $('#dialogGenerators').data("kendoWindow");
             popup.center().open();
-            });
-        }
+        });
+    }
+
 
 
     function removeOperationMode(e) {
