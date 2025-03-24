@@ -32,62 +32,59 @@
         }
 
         var dataItem = grid.dataItem(selected);
-        if (!dataItem) {
+        if (!dataItem || !dataItem.GeneratorGuid) {
             alert("Erro ao obter os dados do gerador selecionado.");
             return;
         }
 
-        // Obter lista de nomes existentes
-        var existingNames = grid.dataSource.data().map(item => item.Name);
-        var baseName = dataItem.Name.replace(/\d+$/, "").trim();
-        var highestNumber = 0;
+        $.ajax({
+            url: '/Ship/DuplicateGenerator',
+            type: 'POST',
+            data: { GeneratorGuid: dataItem.GeneratorGuid },
+            success: function (response) {
+                if (response.success) {
+                    var newGenerator = response.novoGerador;
 
-        existingNames.forEach(name => {
-            var match = name.match(/\d+$/);
-            if (match && name.includes(baseName)) {
-                var num = parseInt(match[0]);
-                if (num > highestNumber) {
-                    highestNumber = num;
+                    // ✅ Insere automaticamente na Grid sem recarregar toda página
+                    grid.dataSource.add(newGenerator);
+
+                    // Opcional: já seleciona o novo item para edição visual
+                    var newItem = grid.dataSource.get(newGenerator.GeneratorGuid);
+                    var row = grid.table.find("tr[data-uid='" + newItem.uid + "']");
+                    grid.select(row);
+                    
+                    alert("Gerador duplicado com sucesso!");
+
+                    // Abre modal ou formulário já com o novo item
+                    preencherFormularioDuplicado(newGenerator);
+                    $("#modalGenerator").modal("show");
+                } else {
+                    alert(response.message);
                 }
+            },
+            error: function () {
+                alert('Erro ao duplicar o gerador.');
             }
         });
-
-        var newGenerator = {
-            GeneratorGuid: kendo.guid(),
-            ShipGuid: dataItem.ShipGuid,
-            Name: baseName + " " + (highestNumber + 1),
-            Order: highestNumber + 1,
-
-            // ✅ Todos os campos importantes:
-            TypeGuid: dataItem.TypeGuid,
-            FuelTypeGuid: dataItem.FuelTypeGuid,
-            kW: dataItem.kW,
-            KgDieselkWh: dataItem.KgDieselkWh,
-            KgDieselkWh2: dataItem.KgDieselkWh2,
-            FuelPrice: dataItem.FuelPrice,
-            FuelPrice2: dataItem.FuelPrice2,
-            EfficientMotorSwitchboard: dataItem.EfficientMotorSwitchboard,
-            EfficientMotorSwitchboard2: dataItem.EfficientMotorSwitchboard2,
-            MaintenanceCost: dataItem.MaintenanceCost,
-            MaintenanceCost2: dataItem.MaintenanceCost2,
-            PowerProduction: dataItem.PowerProduction,
-            ExcludeAutoTune: dataItem.ExcludeAutoTune,
-            EffectBefore: dataItem.EffectBefore,
-            EffectAfter: dataItem.EffectAfter,
-            Faktor: dataItem.Faktor,
-            FuelBefore: dataItem.FuelBefore,
-            FuelAfter: dataItem.FuelAfter,
-            CO2Before: dataItem.CO2Before,
-            CO2After: dataItem.CO2After,
-            NOxBefore: dataItem.NOxBefore,
-            NOxAfter: dataItem.NOxAfter,
-            SOxBefore: dataItem.SOxBefore,
-            SOxAfter: dataItem.SOxAfter
-        };
-
-        saveGenerators([newGenerator]);
     }
 
+    function preencherFormularioDuplicado(novoGerador) {
+        $("#ShipGenerator_GeneratorGuid").val(novoGerador.GeneratorGuid);
+        $("#ShipGenerator_ShipGuid").val(novoGerador.ShipGuid);
+        $("#ShipGenerator_Name").val(novoGerador.Name);
+        $("#ShipGenerator_Order").data("kendoNumericTextBox").value(novoGerador.Order);
+        $("#ShipGenerator_kW").data("kendoNumericTextBox").value(novoGerador.kW);
+        $("#ShipGenerator_KgDieselkWh").data("kendoNumericTextBox").value(novoGerador.KgDieselkWh);
+        $("#ShipGenerator_FuelPrice").data("kendoNumericTextBox").value(novoGerador.FuelPrice);
+        $("#ShipGenerator_EfficientMotorSwitchboard").data("kendoNumericTextBox").value(novoGerador.EfficientMotorSwitchboard);
+        $("#ShipGenerator_MaintenanceCost").data("kendoNumericTextBox").value(novoGerador.MaintenanceCost);
+        $("#ShipGenerator_PowerProduction").prop('checked', novoGerador.PowerProduction);
+        $("#ShipGenerator_ExcludeAutoTune").prop('checked', novoGerador.ExcludeAutoTune);
+        $("#ShipGenerator_TypeGuid").data("kendoDropDownList").value(novoGerador.TypeGuid);
+        $("#ShipGenerator_FuelTypeGuid").data("kendoDropDownList").value(novoGerador.FuelTypeGuid);
+
+        $("#fuelComsumptionList").data("kendoGrid").dataSource.read();
+    }
 
 
 
